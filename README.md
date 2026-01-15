@@ -8,28 +8,28 @@ FlowPose is a workflow-enhancing add-on for Blender that bridges the gap between
 
 ## ✨ Key Features
 
-### 1. Hybrid IK/FK Control
+### 1. Smart Pull (The "Tail" Solver) 🦎
 
-Stop switching modes. FlowPose detects if you are grabbing a standard bone or an IK controller and adjusts its logic automatically.
-
-* **For IK:** It projects your mouse into 3D space, allowing you to "stretch" the target.
-* **For FK:** It uses a screen-space rotation algorithm that feels like a natural "drag."
-
-### 2. Smart Pull (The "Tail" Solver) 🦎
+![0116](https://github.com/user-attachments/assets/bfe93e0b-449b-4a65-bd4f-b81bea8dcdb6)
 
 This is where FlowPose shines. If you pull an FK bone beyond its length, the add-on propagates that movement up the parent chain.
 
 * **Perfect for Tails & Tentacles:** You don't need a complex rig. Just grab the tip of a tail and drag it; the rest of the tail follows naturally in a smooth curve.
 * **Spine Adjustment:** Quickly adjust posture by pulling the chest bone, and the lower spine will accommodate the movement.
 
-### 3. Real-Time Surface Collision 🧱
+
+
+### 2. Real-Time Surface Collision 🧱
+
+![0116(1)](https://github.com/user-attachments/assets/d54f43fb-43b1-4670-8837-0c78cdb158ab)
 
 Never clip through the floor again. FlowPose uses BVH Tree calculations to detect the environment in real-time.
 
 * **Wall Sliding:** Push a hand against a wall, and it will slide along the surface rather than passing through it.
 * **Auto-Orientation:** The bone can automatically rotate to align with the surface normal (e.g., a palm flattening against a table).
+**WARNING** It collides on bones, so change the surface distance if the mesh is clipping a bit
 
-### 4. Smart Filtering
+### 3. Smart Filtering
 
 Choose exactly what your rig interacts with:
 
