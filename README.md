@@ -1,5 +1,3 @@
-# Flowpose-Addon-for-blender
-a blender addon to pose faster, also usefull for tails
 # 🌊 FlowPose
 
 **Fluid IK/FK Posing with Real-Time Collisions for Blender**
