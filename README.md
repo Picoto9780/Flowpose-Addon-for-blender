@@ -1,6 +1,6 @@
 # 🌊 FlowPose
 
-**Fluid IK/FK Posing with Real-Time Collisions for Blender**
+**Fluid IK/FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
 
 Pose Pulling
 
