@@ -29,6 +29,15 @@ This is where FlowPose shines. If you pull an FK bone beyond its length, the add
 * **Natural Drawing Poses:** Move your mouse to trace the motion you imagine—FlowPose handles the bone rotation. Disable "Pull" for precise single-bone control. 👍
 * **Custom Chain Limits:** Use the "Stop Bone" picker to set a hard limit (like the hand), preventing the tool from sliding into fingers or unintended bones.
 
+witouth stop bone
+
+![witouth](https://github.com/user-attachments/assets/352a0664-b0be-4910-9e3f-36618b60937c)
+
+with stop bone (at the chest)
+
+![with](https://github.com/user-attachments/assets/066fc379-c616-4002-852f-eab78db2dc1b)
+
+
 ---
 
 ### 💡 Visual Tip for your README
