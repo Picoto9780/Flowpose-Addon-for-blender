@@ -38,14 +38,6 @@ with stop bone (at the chest)
 ![with](https://github.com/user-attachments/assets/066fc379-c616-4002-852f-eab78db2dc1b)
 
 
----
-
-### 💡 Visual Tip for your README
-
-When you record your GIFs, I recommend showing the **"Stop Bone"** feature specifically, as it's a unique workflow logic that people will find very helpful.
-
-Would you like me to help you write a "Quick Start" section for the README to explain how to set that Stop Bone effectively?
-
 ### 2. Real-Time Surface Collision 🧱
 
 Never clip through the floor again. FlowPose uses BVH Tree calculations to detect the environment in real-time.
@@ -91,8 +83,6 @@ Once the add-on is installed, select a bone in **Pose Mode**:
 
 * **For Tails:** Enable "Auto Pull" in the sidebar. Select the very tip of the tail and just drag it around. The add-on will rotate the parent bones to follow your mouse, creating a smooth, organic curve instantly.
 * **For Walking:** Set the Collision Source to your "Floor" object. When you place a foot IK controller, it will stop exactly at the floor surface.
-
-
 
 
 ## 📝 License
