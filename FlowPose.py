@@ -1,22 +1,25 @@
 bl_info = {
-    "name": "FlowPose: IK Projection & Filters",
+    "name": "FlowPose",
     "author": "MR",
-    "version": (1, 3),
+    "version": (1, 4),
     "blender": (3, 0, 0),
     "location": "View3D > 'D' Key",
-    "description": "FK/IK System with Filtered Collisions and Chain Limiting",
+    "description": "FK/IK System with Multi-Bone Limits and Collision",
     "category": "Animation",
 }
 
 import bpy
 from bpy_extras import view3d_utils
 from mathutils import Vector, Quaternion, Matrix
-from bpy.props import FloatProperty, BoolProperty, EnumProperty, PointerProperty, IntProperty, StringProperty
+from bpy.props import FloatProperty, BoolProperty, EnumProperty, PointerProperty, IntProperty, StringProperty, CollectionProperty
 from mathutils.bvhtree import BVHTree
 
 addon_keymaps = []
 
 # --- DATA STRUCTURES ---
+class FlowStopBoneItem(bpy.types.PropertyGroup):
+    name: StringProperty(name="Bone Name")
+
 class CollisionSettings(bpy.types.PropertyGroup):
     enabled: BoolProperty(
         name="Enable Collisions",
@@ -84,6 +87,9 @@ class OT_FlowPose(bpy.types.Operator):
     ik_constraint = None
     ik_target_bone = None
     bvh_trees = {}
+    
+    # Cache stop bones names for performance
+    stop_bone_names = []
 
     def invoke(self, context, event):
         if context.mode != 'POSE':
@@ -91,6 +97,10 @@ class OT_FlowPose(bpy.types.Operator):
             return {'CANCELLED'}
 
         self.build_collision_cache(context)
+        
+        # Cache the stop list
+        self.stop_bone_names = [item.name for item in context.scene.flow_stop_bones]
+
         bpy.ops.view3d.select(location=(event.mouse_region_x, event.mouse_region_y))
         self.current_bone = context.active_pose_bone
         if not self.current_bone:
@@ -363,14 +373,10 @@ class OT_FlowPose(bpy.types.Operator):
 
         dist_vec = self.mouse_pos - head_2d
         
-        # --- NEW LOGIC: STOP AT NAMED BONE ---
-        stop_bone_name = context.scene.flow_stop_bone_name
-        is_at_stop_bone = (bone.name == stop_bone_name)
+        # --- MULTI-LIMIT LOGIC ---
+        # Check if the current bone name is in the stop list
+        is_at_stop_bone = bone.name in self.stop_bone_names
 
-        # We can descend down the chain ONLY IF:
-        # 1. We are not at the stop bone
-        # 2. Lock Selection is OFF
-        
         can_descend = True
         if is_at_stop_bone: can_descend = False
         if context.scene.flow_lock_selection: can_descend = False
@@ -428,32 +434,76 @@ class OT_FlowPose(bpy.types.Operator):
                 if context.scene.flow_enable_pull:
                     self.process_smart_pull(context, self.current_bone, mouse_vec, 0)
 
-class OT_SetFlowStopBone(bpy.types.Operator):
-    bl_idname = "pose.flow_set_stop_bone"
-    bl_label = "Set Stop Bone"
-    bl_description = "Sets the currently selected bone as the limit where sliding stops"
+# --- PICKER & LIST OPERATORS ---
+
+class OT_FlowPickStopBone(bpy.types.Operator):
+    bl_idname = "pose.flow_pick_stop_bone"
+    bl_label = "Pick Stop Bone"
+    bl_description = "Click on a bone in the 3D View to add it to the Stop List"
+
+    def modal(self, context, event):
+        context.area.tag_redraw()
+        
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            context.window.cursor_modal_restore()
+            return {'CANCELLED'}
+        
+        if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+            # Perform selection to find bone under mouse
+            try:
+                bpy.ops.view3d.select(location=(event.mouse_region_x, event.mouse_region_y))
+                bone = context.active_pose_bone
+                if bone:
+                    # Check for duplicates
+                    existing = [item.name for item in context.scene.flow_stop_bones]
+                    if bone.name not in existing:
+                        item = context.scene.flow_stop_bones.add()
+                        item.name = bone.name
+                        self.report({'INFO'}, f"Added {bone.name} to Stop List")
+                    else:
+                        self.report({'WARNING'}, f"{bone.name} is already in the list")
+                else:
+                    self.report({'WARNING'}, "No bone selected")
+            except Exception as e:
+                self.report({'ERROR'}, str(e))
+            
+            context.window.cursor_modal_restore()
+            return {'FINISHED'}
+            
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        if context.mode != 'POSE':
+            self.report({'WARNING'}, "Please enter Pose Mode first")
+            return {'CANCELLED'}
+        
+        context.window.cursor_modal_set('EYEDROPPER')
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+class OT_FlowRemoveStopBone(bpy.types.Operator):
+    bl_idname = "pose.flow_remove_stop_bone"
+    bl_label = "Remove Stop Bone"
+    bl_description = "Remove this bone from the limit list"
+    
+    index: IntProperty()
 
     def execute(self, context):
-        bone = context.active_pose_bone
-        if bone:
-            context.scene.flow_stop_bone_name = bone.name
-            self.report({'INFO'}, f"Stop Bone set to: {bone.name}")
-        else:
-            self.report({'WARNING'}, "No bone selected")
+        context.scene.flow_stop_bones.remove(self.index)
         return {'FINISHED'}
 
-class OT_ClearFlowStopBone(bpy.types.Operator):
-    bl_idname = "pose.flow_clear_stop_bone"
-    bl_label = "Clear Stop Bone"
-    bl_description = "Clear the stop bone limit"
+class OT_FlowClearAllStopBones(bpy.types.Operator):
+    bl_idname = "pose.flow_clear_all_stop_bones"
+    bl_label = "Clear List"
+    bl_description = "Clear all stop bones"
 
     def execute(self, context):
-        context.scene.flow_stop_bone_name = ""
+        context.scene.flow_stop_bones.clear()
         return {'FINISHED'}
 
 # --- UI ---
 class PT_FlowPosePanel(bpy.types.Panel):
-    bl_label = "FlowPose V1.3"
+    bl_label = "FlowPose V1.4"
     bl_idname = "PT_FlowPose"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -461,28 +511,41 @@ class PT_FlowPosePanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        col_settings = context.scene.collision_settings
+        scene = context.scene
+        col_settings = scene.collision_settings
 
         box = layout.box()
         box.label(text="Animation Mode:", icon='ARMATURE_DATA')
-        box.prop(context.scene, "flow_use_ik", text="IK-FK Hybrid")
-        box.prop(context.scene, "flow_sensitivity", slider=True, text="Sensitivity")
+        box.prop(scene, "flow_use_ik", text="IK-FK Hybrid")
+        box.prop(scene, "flow_sensitivity", slider=True, text="Sensitivity")
 
         box = layout.box()
         box.label(text="Smart Pull (Body):", icon='FORCE_MAGNETIC')
-        box.prop(context.scene, "flow_enable_pull", text="Enable Pull")
+        box.prop(scene, "flow_enable_pull", text="Enable Pull")
         col = box.column(align=True)
-        col.enabled = context.scene.flow_enable_pull
-        col.prop(context.scene, "flow_force_pull_mode", text="Force Pull")
-        col.prop(context.scene, "flow_pull_stiffness", slider=True, text="Stiffness")
-        col.prop(context.scene, "flow_pull_chain_depth", text="Chain Depth")
+        col.enabled = scene.flow_enable_pull
+        col.prop(scene, "flow_force_pull_mode", text="Force Pull")
+        col.prop(scene, "flow_pull_stiffness", slider=True, text="Stiffness")
+        col.prop(scene, "flow_pull_chain_depth", text="Chain Depth")
         
+        # --- STOP LIST UI ---
         col.separator()
-        col.label(text="Stop Sliding At:")
+        col.label(text="Stop Limits (Bones):", icon='CANCEL')
+        
         row = col.row(align=True)
-        row.prop(context.scene, "flow_stop_bone_name", text="")
-        row.operator("pose.flow_set_stop_bone", text="", icon='EYEDROPPER')
-        row.operator("pose.flow_clear_stop_bone", text="", icon='X')
+        row.operator("pose.flow_pick_stop_bone", text="Pick Bone (Click)", icon='EYEDROPPER')
+        row.operator("pose.flow_clear_all_stop_bones", text="", icon='TRASH')
+        
+        if len(scene.flow_stop_bones) > 0:
+            list_box = col.box()
+            for i, item in enumerate(scene.flow_stop_bones):
+                row = list_box.row()
+                row.label(text=item.name, icon='BONE_DATA')
+                op = row.operator("pose.flow_remove_stop_bone", text="", icon='X')
+                op.index = i
+        else:
+            col.label(text="No limits set (Slides to tip)", icon='INFO')
+        # --------------------
 
         box = layout.box()
         header = box.row()
@@ -518,6 +581,7 @@ class OT_RebuildCollisionCache(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(FlowStopBoneItem)
     bpy.utils.register_class(CollisionSettings)
     bpy.types.Scene.collision_settings = PointerProperty(type=CollisionSettings)
     bpy.types.Scene.flow_sensitivity = FloatProperty(name="Sensitivity", default=1.0)
@@ -532,14 +596,14 @@ def register():
         default=False, 
         description="Globally prevent automatic bone switching"
     )
-    bpy.types.Scene.flow_stop_bone_name = StringProperty(
-        name="Stop Bone Name",
-        description="The name of the bone where sliding should stop"
-    )
+    
+    # New Collection Property for list
+    bpy.types.Scene.flow_stop_bones = CollectionProperty(type=FlowStopBoneItem)
 
     bpy.utils.register_class(OT_FlowPose)
-    bpy.utils.register_class(OT_SetFlowStopBone)
-    bpy.utils.register_class(OT_ClearFlowStopBone)
+    bpy.utils.register_class(OT_FlowPickStopBone)
+    bpy.utils.register_class(OT_FlowRemoveStopBone)
+    bpy.utils.register_class(OT_FlowClearAllStopBones)
     bpy.utils.register_class(OT_RebuildCollisionCache)
     bpy.utils.register_class(PT_FlowPosePanel)
 
@@ -559,14 +623,16 @@ def unregister():
     del bpy.types.Scene.flow_force_pull_mode
     del bpy.types.Scene.flow_enable_pull
     del bpy.types.Scene.flow_lock_selection
-    del bpy.types.Scene.flow_stop_bone_name
+    del bpy.types.Scene.flow_stop_bones
 
     bpy.utils.unregister_class(PT_FlowPosePanel)
     bpy.utils.unregister_class(OT_RebuildCollisionCache)
-    bpy.utils.unregister_class(OT_SetFlowStopBone)
-    bpy.utils.unregister_class(OT_ClearFlowStopBone)
+    bpy.utils.unregister_class(OT_FlowPickStopBone)
+    bpy.utils.unregister_class(OT_FlowRemoveStopBone)
+    bpy.utils.unregister_class(OT_FlowClearAllStopBones)
     bpy.utils.unregister_class(OT_FlowPose)
     bpy.utils.unregister_class(CollisionSettings)
+    bpy.utils.unregister_class(FlowStopBoneItem)
 
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
