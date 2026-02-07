@@ -1,13 +1,14 @@
 # 🌊 FlowPose (**free addon**)
 
-**Fluid IK/FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
+**Fluid FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
 
 **HIGHLY RECCOMENDED FOR FK**
+
+![ezgif-87f101cdfe13c5a3](https://github.com/user-attachments/assets/dc8299fb-f7f8-4769-a00c-06b508654319)
 
 Bone Pulling
 
 ![0116](https://github.com/user-attachments/assets/bfe93e0b-449b-4a65-bd4f-b81bea8dcdb6)
-
 
 Collisions
 
@@ -17,15 +18,21 @@ Fast Posing
 
 ![0116(2)](https://github.com/user-attachments/assets/0c35e8f0-3adf-4cd1-8eab-cd650f78a692)
 
+Difference with IK
+
+![ezgif-8e553cba4adc14f3](https://github.com/user-attachments/assets/fe44fff5-f02e-487a-8a2d-25227fcea8e2)
 
 
 
-
-FlowPose is a workflow-enhancing add-on for Blender that bridges the gap between Forward Kinematics (FK) and Inverse Kinematics (IK). It allows you to drag any bone with "Smart Pull" physics, slide limbs against surfaces without clipping, and pose complex chains—**like tails, spines, and tentacles**—effortlessly.
+FlowPose is a workflow-enhancing add-on for Blender that proposes a new way of posing. It allows you to draw/drag any bone with "Smart Pull" physics, slide limbs against surfaces without clipping, and pose complex chains—**like tails, spines, and tentacles**—effortlessly.
 
 (the rig is **Adjustable Mannequin by Vertex Arcade**)
 
 ## ✨ Key Features
+
+### 0. Drawing poses
+
+Instead of manually rotating each bone, just **Grab the start of an arm/leg/spine, press D** and **Draw the curve**
 
 ### 1. Smart Pull (The "Tail" Solver) 🦎
 
