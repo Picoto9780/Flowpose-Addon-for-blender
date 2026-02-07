@@ -59,6 +59,9 @@ change the **magnet axis** if you want your bone to rotate a certain way if coll
 
 There is an **IK compatible mode** but it's very **experimental**
 
+**your feedback is very much appreciated**
+
+
 ## 🎮 Controls
 
 Once the add-on is installed, select a bone in **Pose Mode**:
