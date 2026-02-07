@@ -28,11 +28,11 @@ FlowPose is a workflow-enhancing add-on for Blender that proposes a new way of p
 
 (the rig is **Adjustable Mannequin by Vertex Arcade**)
 
-## ✨ Key Features
-
 ### 0. Drawing poses
 
-Instead of manually rotating each bone, just **Grab the start of an arm/leg/spine, press D** and **Draw the curve**
+Instead of manually rotating each bone, just **Select the start of an arm/leg/spine, press D** and **Draw the curve, the pull activates at the end so that you can adjust**
+
+
 
 ### 1. Smart Pull (The "Tail" Solver) 🦎
 
