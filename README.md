@@ -1,7 +1,7 @@
-# 🌊 FlowPose
+# 🌊 FlowPose **free!**
 
 **Fluid IK/FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
-**free!**
+
 **HIGHLY RECCOMENDED FOR FK**
 
 Bone Pulling
